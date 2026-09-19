@@ -1,0 +1,420 @@
+/* ================================
+   GLOBAL
+================================ */
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Inter, Arial, sans-serif;
+  background: #f5f8f6;
+  color: #17251c;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.app {
+  min-height: 100vh;
+}
+
+
+/* ================================
+   NAVIGATION
+================================ */
+
+.navbar {
+  background: #123d24;
+  color: white;
+  padding: 18px 45px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 3px solid #2f8f46;
+}
+
+.navbar h1 {
+  margin: 0;
+  font-size: 30px;
+  letter-spacing: -0.5px;
+}
+
+.navbar p {
+  margin: 4px 0 0;
+  color: #cce8d3;
+  font-size: 14px;
+}
+
+.farmer-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 3px;
+}
+
+.farmer-info span {
+  font-size: 12px;
+  color: #b9d8c1;
+}
+
+.farmer-info strong {
+  font-size: 15px;
+}
+
+
+/* ================================
+   MAIN DASHBOARD
+================================ */
+
+.dashboard {
+  max-width: 1200px;
+  margin: auto;
+  padding: 40px 30px 60px;
+}
+
+.welcome {
+  margin-bottom: 30px;
+}
+
+.welcome h2 {
+  margin: 0 0 8px;
+  font-size: 31px;
+}
+
+.welcome p {
+  margin: 0;
+  color: #66756c;
+  font-size: 16px;
+}
+
+
+/* ================================
+   SUMMARY CARDS
+================================ */
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.card {
+  background: white;
+  border: 1px solid #e2ebe5;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 7px 22px rgba(24, 62, 37, 0.06);
+  transition: 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 28px rgba(24, 62, 37, 0.1);
+}
+
+.card h3 {
+  margin: 0 0 16px;
+  color: #52665a;
+  font-size: 17px;
+}
+
+.card .value {
+  margin: 0 0 6px;
+  color: #176b35;
+  font-size: 28px;
+  font-weight: 750;
+}
+
+.card p:last-child {
+  margin: 0;
+  color: #7a887f;
+  font-size: 13px;
+}
+
+
+/* ================================
+   RISK VERIFICATION
+================================ */
+
+.risk-section {
+  background: white;
+  border: 1px solid #e2ebe5;
+  border-radius: 18px;
+  padding: 28px;
+  margin-bottom: 25px;
+  box-shadow: 0 7px 22px rgba(24, 62, 37, 0.05);
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 25px;
+}
+
+.section-header h2 {
+  margin: 0 0 6px;
+  font-size: 21px;
+}
+
+.section-header p {
+  margin: 0;
+  color: #748078;
+  font-size: 14px;
+}
+
+.primary-button {
+  border: none;
+  background: #176b35;
+  color: white;
+  padding: 12px 20px;
+  border-radius: 9px;
+  font-weight: 600;
+  transition: 0.2s ease;
+}
+
+.primary-button:hover {
+  background: #0f5428;
+  transform: translateY(-1px);
+}
+
+.risk-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+}
+
+.risk-card {
+  border: 1px solid #e5ece7;
+  background: #f8fbf9;
+  border-radius: 13px;
+  padding: 20px;
+}
+
+.risk-card > span {
+  font-size: 25px;
+}
+
+.risk-card h3 {
+  margin: 12px 0 8px;
+  font-size: 16px;
+}
+
+.risk-card strong {
+  display: inline-block;
+  color: #176b35;
+  background: #e5f5e9;
+  padding: 5px 9px;
+  border-radius: 20px;
+  font-size: 12px;
+}
+
+.risk-card p {
+  margin: 10px 0 0;
+  color: #7a887f;
+  font-size: 13px;
+}
+
+
+/* ================================
+   RISK RESULT
+================================ */
+
+.risk-result {
+  background: linear-gradient(135deg, #eaf7ed, #f7fbf8);
+  border: 1px solid #cfe7d5;
+  border-radius: 18px;
+  padding: 25px 28px;
+  margin-bottom: 25px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.status-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: #688071;
+}
+
+.risk-result h2 {
+  margin: 6px 0;
+  color: #176b35;
+  font-size: 27px;
+}
+
+.risk-result p {
+  margin: 0;
+  color: #64736a;
+  font-size: 14px;
+}
+
+.risk-score {
+  text-align: center;
+  min-width: 130px;
+}
+
+.risk-score span {
+  display: block;
+  color: #68776e;
+  font-size: 12px;
+  margin-bottom: 5px;
+}
+
+.risk-score strong {
+  color: #176b35;
+  font-size: 40px;
+}
+
+.risk-score small {
+  color: #718077;
+  font-size: 15px;
+}
+
+
+/* ================================
+   QUICK ACTIONS
+================================ */
+
+.actions {
+  margin-bottom: 30px;
+}
+
+.actions h2,
+.activity h2 {
+  margin: 0 0 18px;
+  font-size: 21px;
+}
+
+.action-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+.action-grid button {
+  border: 1px solid #dce7df;
+  background: white;
+  color: #23422d;
+  padding: 16px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: left;
+  transition: 0.2s ease;
+}
+
+.action-grid button:hover {
+  border-color: #67a878;
+  background: #f2f9f4;
+  transform: translateY(-2px);
+}
+
+
+/* ================================
+   RECENT ACTIVITY
+================================ */
+
+.activity {
+  background: white;
+  border: 1px solid #e2ebe5;
+  border-radius: 18px;
+  padding: 25px;
+  box-shadow: 0 7px 22px rgba(24, 62, 37, 0.05);
+}
+
+.activity-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 13px;
+  padding: 15px 0;
+  border-bottom: 1px solid #edf1ee;
+}
+
+.activity-item:last-child {
+  border-bottom: none;
+}
+
+.activity-item > span {
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  background: #e5f5e9;
+  color: #176b35;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
+.activity-item strong {
+  font-size: 14px;
+}
+
+.activity-item p {
+  margin: 4px 0 0;
+  color: #7a887f;
+  font-size: 13px;
+}
+
+
+/* ================================
+   RESPONSIVE DESIGN
+================================ */
+
+@media (max-width: 850px) {
+
+  .cards,
+  .risk-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .action-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .section-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 600px) {
+
+  .navbar {
+    padding: 18px 20px;
+  }
+
+  .farmer-info {
+    display: none;
+  }
+
+  .dashboard {
+    padding: 28px 16px 45px;
+  }
+
+  .welcome h2 {
+    font-size: 25px;
+  }
+
+  .risk-result {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 20px;
+  }
+
+  .risk-score {
+    text-align: left;
+  }
+
+  .action-grid {
+    grid-template-columns: 1fr;
+  }
+}

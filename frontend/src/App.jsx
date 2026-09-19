@@ -1,9 +1,22 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 function App() {
-  const [riskScore, setRiskScore] = useState(24)
+ const [riskScore, setRiskScore] = useState(24)
   const [riskLevel, setRiskLevel] = useState('Low Risk')
-  const rainfallRisk = 20
+  const [weather, setWeather] = useState(null)
+  useEffect(() => {
+  fetch(
+    'https://api.open-meteo.com/v1/forecast?latitude=13.08&longitude=80.27&daily=rain_sum,temperature_2m_mean&timezone=auto'
+  )
+    .then((response) => response.json())
+    .then((data) => {
+      setWeather(data.daily)
+    })
+    .catch((error) => {
+      console.error('Weather API error:', error)
+    })
+}, [])
+  const rainfallRisk = weather ? Math.min(weather.rain_sum[0] * 10, 100) : 0
   const soilRisk = 30
   const cropRisk = 25
 
@@ -40,6 +53,18 @@ function App() {
             Monitor your farm risk, insurance policy and verified agricultural data.
           </p>
         </section>
+        <section className="weather-section">
+          <h2>🌦️ Live Weather</h2>
+
+          {weather ? (
+            <p>
+              Temperature: {weather.temperature_2m_mean[0]}°C |
+              Rain: {weather.rain_sum[0]} mm
+            </p>
+          ) : (
+            <p>Loading weather data...</p>
+         )}
+       </section>
 
         {/* Summary Cards */}
         <section className="cards">

@@ -1,11 +1,20 @@
+from unittest import result
+
 from fastapi import FastAPI
 from dotenv import load_dotenv
 import os
 import requests
-
+from fastapi.middleware.cors import CORSMiddleware
 load_dotenv()
 
 app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.get("/")
 def home():
@@ -130,4 +139,8 @@ function evaluatePixel(sample) {
         json=payload
     )
 
-    return response.json()
+    result = response.json()
+
+    return {
+        "ndvi": result["data"][0]["outputs"]["ndvi"]["bands"]["B0"]["stats"]["mean"]
+    }

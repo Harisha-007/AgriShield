@@ -1,4 +1,4 @@
-import { BrowserProvider, Contract } from "ethers";
+import { BrowserProvider, Contract, formatEther } from "ethers";
 import { CONTRACT_ADDRESS, CONTRACT_ABI } from "./contract";
 import { useEffect, useState } from "react";
 
@@ -7,9 +7,17 @@ function App() {
 
   const [riskScore, setRiskScore] = useState(24);
   const [riskLevel, setRiskLevel] = useState("Low Risk");
+
   const [weather, setWeather] = useState(null);
   const [ndvi, setNdvi] = useState(null);
 
+  const [policy, setPolicy] = useState(null);
+  const [payoutEligible, setPayoutEligible] = useState(false);
+  const [creditScore, setCreditScore] = useState(null);
+
+  // -----------------------------
+  // CONNECT WALLET
+  // -----------------------------
   const connectWallet = async () => {
     if (!window.ethereum) {
       alert("Please install MetaMask");
@@ -21,6 +29,7 @@ function App() {
       const accounts = await provider.send("eth_requestAccounts", []);
 
       setWalletAddress(accounts[0]);
+
       const contract = new Contract(
         CONTRACT_ADDRESS,
         CONTRACT_ABI,
@@ -28,16 +37,19 @@ function App() {
       );
 
       const oracleAddress = await contract.oracle();
-
       console.log("Contract Oracle:", oracleAddress);
-      const balance = await contract.getBalance();
 
+      const balance = await contract.getBalance();
       console.log("Contract Balance:", balance.toString());
     } catch (error) {
       console.error("Wallet connection error:", error);
     }
   };
-    const fundContract = async () => {
+
+  // -----------------------------
+  // FUND CONTRACT
+  // -----------------------------
+  const fundContract = async () => {
     if (!window.ethereum) {
       alert("Please install MetaMask");
       return;
@@ -62,12 +74,128 @@ function App() {
       await tx.wait();
 
       console.log("Contract funded successfully");
-
     } catch (error) {
       console.error("Funding error:", error);
     }
   };
 
+  // -----------------------------
+  // CREATE INSURANCE POLICY
+  // -----------------------------
+  const createPolicy = async () => {
+    if (!window.ethereum) {
+      alert("Please install MetaMask");
+      return;
+    }
+
+    try {
+      const provider = new BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+
+      const contract = new Contract(
+        CONTRACT_ADDRESS,
+        CONTRACT_ABI,
+        signer
+      );
+
+      const tx = await contract.createPolicy(
+        1,
+        "10000000000000",
+        "500000000000000",
+        2592000,
+        {
+          value: "10000000000000"
+        }
+      );
+
+      console.log("Policy creation transaction:", tx.hash);
+
+      await tx.wait();
+
+      console.log("Insurance policy created successfully");
+    } catch (error) {
+      console.error("Policy creation error:", error);
+    }
+  };
+
+  // -----------------------------
+  // GET POLICY
+  // -----------------------------
+  const getPolicy = async () => {
+    if (!window.ethereum) {
+      alert("Please install MetaMask");
+      return;
+    }
+
+    try {
+      const provider = new BrowserProvider(window.ethereum);
+
+      const contract = new Contract(
+        CONTRACT_ADDRESS,
+        CONTRACT_ABI,
+        provider
+      );
+
+      const result = await contract.policies(1);
+
+      console.log("Policy result:", result);
+
+      setPolicy({
+        farmer: result.farmer,
+        premium: formatEther(result.premium),
+        coverageAmount: formatEther(result.coverageAmount),
+        active: result.active,
+        payoutTriggered: result.payoutTriggered
+      });
+      return {
+        farmer: result.farmer,
+        premium: formatEther(result.premium),
+        coverageAmount: formatEther(result.coverageAmount),
+        active: result.active,
+        payoutTriggered: result.payoutTriggered
+    };
+    } catch (error) {
+      console.error("Policy read error:", error);
+    }
+  };
+
+  // -----------------------------
+  // TRIGGER PAYOUT
+  // -----------------------------
+  const triggerPayout = async () => {
+    if (!window.ethereum) {
+      alert("Please install MetaMask");
+      return;
+    }
+
+    try {
+      const provider = new BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+
+      const contract = new Contract(
+        CONTRACT_ADDRESS,
+        CONTRACT_ABI,
+        signer
+      );
+
+      const tx = await contract.triggerPayout(1);
+
+      console.log("Payout transaction:", tx.hash);
+
+      await tx.wait();
+
+      console.log("Insurance payout triggered successfully");
+
+      // Refresh policy information after payout
+      await getPolicy();
+    } catch (error) {
+      console.error("Payout error:", error);
+    }
+  };
+
+  // -----------------------------
+  // WEATHER + NDVI DATA
+  // -----------------------------
   useEffect(() => {
     fetch(
       "https://api.open-meteo.com/v1/forecast?latitude=13.08&longitude=80.27&daily=rain_sum,temperature_2m_mean&timezone=auto"
@@ -90,6 +218,9 @@ function App() {
       });
   }, []);
 
+  // -----------------------------
+  // RISK CALCULATION
+  // -----------------------------
   const rainfallRisk = weather
     ? Math.min(weather.rain_sum[0] * 10, 100)
     : 0;
@@ -97,7 +228,10 @@ function App() {
   const cropRisk =
     ndvi !== null
       ? Math.round(
-          Math.max(0, Math.min(100, (0.6 - ndvi) * 100))
+          Math.max(
+            0,
+            Math.min(100, (0.6 - ndvi) * 100)
+          )
         )
       : 0;
 
@@ -108,21 +242,79 @@ function App() {
       rainfallRisk * 0.5 + cropRisk * 0.5
     );
   };
+  const evaluatePayoutEligibility = (score) => {
+  if (score >= 70) {
+    return {
+      eligible: true,
+      reason: "High agricultural risk detected"
+    };
+  }
 
-  const handleRiskCheck = () => {
-    const newScore = calculateRisk();
-
-    setRiskScore(newScore);
-
-    if (newScore < 40) {
-      setRiskLevel("Low Risk");
-    } else if (newScore < 70) {
-      setRiskLevel("Moderate Risk");
-    } else {
-      setRiskLevel("High Risk");
-    }
+  return {
+    eligible: false,
+    reason: "Risk threshold for payout not reached"
   };
+};
 
+  const handleRiskCheck = async () => {
+  await getPolicy();
+  const newScore = calculateRisk();
+  const payoutDecision = evaluatePayoutEligibility(newScore);
+  const policyData = await getPolicy();
+  const newCreditScore = calculateCreditScore(policyData);
+  setCreditScore(newCreditScore);
+
+  setRiskScore(newScore);
+
+  if (newScore < 40) {
+    setRiskLevel("Low Risk");
+  } else if (newScore < 70) {
+    setRiskLevel("Moderate Risk");
+  } else {
+    setRiskLevel("High Risk");
+  }
+
+  setPayoutEligible(payoutDecision.eligible);
+  if (payoutDecision.eligible && policy?.active) {
+  await triggerPayout();
+}
+  console.log("AgriShield Risk Decision:", {
+    riskScore: newScore,
+    riskLevel:
+      newScore < 40
+        ? "Low Risk"
+        : newScore < 70
+        ? "Moderate Risk"
+        : "High Risk",
+        payoutEligible: payoutDecision.eligible,
+        reason: payoutDecision.reason
+  });
+};
+const calculateCreditScore = (policyData) => {
+  if (!policyData) {
+    return 0;
+  }    
+
+  let score = 0;
+
+  // Verified insurance policy exists
+  score += 40;
+
+  // Policy was completed through the blockchain
+  if (policyData.payoutTriggered) {
+    score += 30;
+  }
+
+  // Policy was previously active
+  if (!policyData.active) {
+    score += 30;
+  }
+
+  return score;
+};
+  // -----------------------------
+  // UI
+  // -----------------------------
   return (
     <>
       {/* Wallet Button */}
@@ -185,7 +377,6 @@ function App() {
 
             <div className="card">
               <h3>🌦️ Weather Risk</h3>
-
               <p className="value">LOW</p>
 
               <p>
@@ -195,7 +386,6 @@ function App() {
 
             <div className="card">
               <h3>🛡️ Insurance</h3>
-
               <p className="value">ACTIVE</p>
 
               <p>
@@ -205,7 +395,6 @@ function App() {
 
             <div className="card">
               <h3>💰 Coverage</h3>
-
               <p className="value">₹50,000</p>
 
               <p>
@@ -256,7 +445,7 @@ function App() {
                 </strong>
 
                 <p>
-                  Demo risk contribution
+                  Weather risk contribution
                 </p>
 
               </div>
@@ -275,7 +464,7 @@ function App() {
                 </strong>
 
                 <p>
-                  Demo risk contribution
+                  Soil risk contribution
                 </p>
 
               </div>
@@ -313,13 +502,21 @@ function App() {
               <span className="status-label">
                 CURRENT FARM RISK
               </span>
+          {creditScore !== null && (
+            <div>
+              <h3>💳 Credit Readiness Index</h3>
+              <p>Based on verified blockchain insurance history</p>
+            </div>
+          )}
 
               <h2>
                 {riskLevel}
               </h2>
 
               <p>
-                No predefined drought or flood trigger detected.
+               {payoutEligible
+                 ? "🚨 Payout Eligible"
+                 : "✅ Payout Not Eligible"}
               </p>
 
             </div>
@@ -351,12 +548,16 @@ function App() {
 
             <div className="action-grid">
 
-              <button>
-                📋 View Policy
+              <button onClick={createPolicy}>
+                💳 Buy Insurance
               </button>
 
-              <button>
-                💳 Buy Insurance
+              <button onClick={getPolicy}>
+                🔍 View Policy
+              </button>
+
+              <button onClick={triggerPayout}>
+                💸 Trigger Payout
               </button>
 
               <button>
@@ -374,6 +575,7 @@ function App() {
               <button>
                 📊 Detailed Analysis
               </button>
+
               <button onClick={fundContract}>
                 💰 Fund Contract
               </button>
@@ -381,6 +583,103 @@ function App() {
             </div>
 
           </section>
+
+          {/* Policy Details */}
+          {policy && (
+            <section className="activity">
+
+              <h2>
+                📋 Insurance Policy #1
+              </h2>
+              <p>
+                🔗 Blockchain Verified — Ethereum Sepolia
+              </p>
+              <p>
+                Contract:{" "}
+                <a
+                 href={`https://sepolia.etherscan.io/address/${CONTRACT_ADDRESS}`}
+                 target="_blank"
+                 rel="noreferrer"
+               >
+                 View on Etherscan
+               </a>
+              </p>
+              <div className="activity-item">
+
+                <div>
+                  <strong>
+                    Farmer
+                  </strong>
+
+                  <p>
+                    {policy.farmer}
+                  </p>
+                </div>
+
+              </div>
+
+              <div className="activity-item">
+
+                <div>
+                  <strong>
+                    Premium
+                  </strong>
+
+                  <p>
+                    {policy.premium} ETH
+                  </p>
+                </div>
+
+              </div>
+
+              <div className="activity-item">
+
+                <div>
+                  <strong>
+                    Coverage
+                  </strong>
+
+                  <p>
+                    {policy.coverageAmount} ETH
+                  </p>
+                </div>
+
+              </div>
+
+              <div className="activity-item">
+
+                <div>
+                  <strong>
+                    Status
+                  </strong>
+
+                  <p>
+                    {policy.active
+                      ? "Active"
+                      : "Inactive"}
+                  </p>
+                </div>
+
+              </div>
+
+              <div className="activity-item">
+
+                <div>
+                  <strong>
+                    Payout
+                  </strong>
+
+                  <p>
+                    {policy.payoutTriggered
+                      ? "Triggered"
+                      : "Not Triggered"}
+                  </p>
+                </div>
+
+              </div>
+
+            </section>
+          )}
 
           {/* Recent Activity */}
           <section className="activity">

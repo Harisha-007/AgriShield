@@ -37,7 +37,8 @@ contract AgriShieldInsurance {
         uint256 premium,
         uint256 coverageAmount,
         uint256 duration
-    ) public {
+    ) public payable {
+        require(msg.value == premium, "Premium payment mismatch");
         policies[policyId] = Policy(
             msg.sender,
             premium,
@@ -59,6 +60,7 @@ contract AgriShieldInsurance {
         policy.payoutTriggered = true;
         policy.active = false;
 
-        payable(policy.farmer).transfer(policy.coverageAmount);
+        (bool success, ) = payable(policy.farmer).call{value: policy.coverageAmount}("");
+        require(success, "Payout failed");
    }
 }

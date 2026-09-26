@@ -32,7 +32,7 @@ FARM_LONGITUDE = float(
 
 # Risk configuration
 PAYOUT_RISK_THRESHOLD = int(
-    os.getenv("PAYOUT_RISK_THRESHOLD", "70")
+    os.getenv("PAYOUT_RISK_THRESHOLD", "20")
 )
 
 WEATHER_WEIGHT = float(

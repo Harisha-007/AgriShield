@@ -1,4 +1,3 @@
-
 import {
   BrowserProvider,
   Contract,
@@ -12,6 +11,8 @@ import {
   useEffect,
   useState
 } from "react";
+
+const ACTIVE_POLICY_ID = 2;
 
 function App() {
   const [walletAddress, setWalletAddress] =
@@ -38,8 +39,7 @@ function App() {
   const [cropRisk, setCropRisk] =
     useState(null);
 
-  const [soilRisk] =
-    useState(0);
+  const soilRisk = 0;
 
   const [policy, setPolicy] =
     useState(null);
@@ -144,9 +144,17 @@ function App() {
         );
 
       const result =
-        await contract.policies(1);
+        await contract.policies(
+          ACTIVE_POLICY_ID
+        );
+
+      console.log(
+        `Policy ${ACTIVE_POLICY_ID} result:`,
+        result
+      );
 
       const policyData = {
+        id: ACTIVE_POLICY_ID,
         farmer: result.farmer,
         premium: formatEther(
           result.premium
@@ -174,7 +182,7 @@ function App() {
   };
 
   // =====================================================
-  // CREATE POLICY
+  // CREATE ACTIVE POLICY
   // =====================================================
 
   const createPolicy = async () => {
@@ -201,7 +209,7 @@ function App() {
 
       const tx =
         await contract.createPolicy(
-          1,
+          ACTIVE_POLICY_ID,
           "10000000000000",
           "500000000000000",
           2592000,
@@ -212,7 +220,7 @@ function App() {
         );
 
       console.log(
-        "Policy creation transaction:",
+        `Policy ${ACTIVE_POLICY_ID} creation transaction:`,
         tx.hash
       );
 
@@ -227,7 +235,7 @@ function App() {
       );
 
       alert(
-        "Insurance policy created successfully."
+        `Insurance Policy #${ACTIVE_POLICY_ID} created successfully.`
       );
     } catch (error) {
       console.error(
@@ -271,11 +279,11 @@ function App() {
 
       const tx =
         await contract.triggerPayout(
-          1
+          ACTIVE_POLICY_ID
         );
 
       console.log(
-        "Payout transaction:",
+        `Policy ${ACTIVE_POLICY_ID} payout transaction:`,
         tx.hash
       );
 
@@ -293,7 +301,7 @@ function App() {
       await getPolicy();
 
       alert(
-        "Insurance payout recorded successfully on Ethereum Sepolia."
+        `Policy #${ACTIVE_POLICY_ID} payout recorded successfully on Ethereum Sepolia.`
       );
 
       return true;
@@ -376,17 +384,14 @@ function App() {
 
       let score = 0;
 
-      // Verified insurance policy
       score += 40;
 
-      // Verified payout lifecycle
       if (
         policyData.payoutTriggered
       ) {
         score += 30;
       }
 
-      // Completed policy lifecycle
       if (
         !policyData.active
       ) {
@@ -407,7 +412,7 @@ function App() {
       try {
         const response =
           await fetch(
-            "http://localhost:8000/risk-check"
+            "http://localhost:8001/risk-check"
           );
 
         if (!response.ok) {
@@ -424,7 +429,6 @@ function App() {
           data
         );
 
-        // Weather
         setWeather(
           data.weather
         );
@@ -439,7 +443,6 @@ function App() {
             .weather_risk
         );
 
-        // Satellite
         setNdvi(
           data.ndvi
         );
@@ -448,8 +451,6 @@ function App() {
           data.crop_risk
         );
 
-        // Soil
-        // Currently reserved
         setRiskScore(
           data.risk_score
         );
@@ -466,7 +467,6 @@ function App() {
           data.payout_reason
         );
 
-        // Read blockchain policy
         const policyData =
           await getPolicy();
 
@@ -487,7 +487,7 @@ function App() {
         );
 
         alert(
-          "Unable to calculate risk from the backend. Make sure FastAPI is running."
+          "Unable to calculate risk from the backend. Make sure FastAPI is running on port 8001."
         );
 
         return null;
@@ -511,9 +511,8 @@ function App() {
 
   return (
     <>
-      {/* WALLET */}
-
       <div className="wallet-container">
+
         <button
           onClick={
             connectWallet
@@ -531,15 +530,15 @@ function App() {
               )
             : "🔗 Connect Wallet"}
         </button>
+
       </div>
 
       <div className="app">
 
-        {/* HEADER */}
-
         <header className="navbar">
 
           <div>
+
             <h1>
               🌾 AgriShield
             </h1>
@@ -547,6 +546,7 @@ function App() {
             <p>
               Smart Crop Insurance Platform
             </p>
+
           </div>
 
           <div className="farmer-info">
@@ -563,11 +563,7 @@ function App() {
 
         </header>
 
-        {/* DASHBOARD */}
-
         <main className="dashboard">
-
-          {/* WELCOME */}
 
           <section className="welcome">
 
@@ -582,8 +578,6 @@ function App() {
             </p>
 
           </section>
-
-          {/* ENVIRONMENT */}
 
           <section className="weather-section">
 
@@ -619,6 +613,7 @@ function App() {
                   Weather source:
                   Open-Meteo
                 </small>
+
               </>
             ) : (
               <p>
@@ -628,8 +623,6 @@ function App() {
             )}
 
           </section>
-
-          {/* SUMMARY CARDS */}
 
           <section className="cards">
 
@@ -682,8 +675,6 @@ function App() {
 
           </section>
 
-          {/* RISK VERIFICATION */}
-
           <section className="risk-section">
 
             <div className="section-header">
@@ -722,8 +713,6 @@ function App() {
 
             <div className="risk-grid">
 
-              {/* WEATHER */}
-
               <div className="risk-card">
 
                 <span>
@@ -747,8 +736,6 @@ function App() {
 
               </div>
 
-              {/* SOIL */}
-
               <div className="risk-card">
 
                 <span>
@@ -769,8 +756,6 @@ function App() {
                 </p>
 
               </div>
-
-              {/* NDVI */}
 
               <div className="risk-card">
 
@@ -809,8 +794,6 @@ function App() {
 
             </small>
 
-            {/* METHODOLOGY */}
-
             <div className="methodology-note">
 
               <strong>
@@ -843,8 +826,6 @@ function App() {
             </div>
 
           </section>
-
-          {/* RISK RESULT */}
 
           <section className="risk-result">
 
@@ -909,8 +890,6 @@ function App() {
             </div>
 
           </section>
-
-          {/* QUICK ACTIONS */}
 
           <section className="actions">
 
@@ -1004,13 +983,13 @@ function App() {
                 onClick={() => {
 
                   alert(
-                    `Risk Score: ${
+                    `Policy ID: ${ACTIVE_POLICY_ID}\nRisk Score: ${
                       riskScore ?? "--"
-                    }/100\n\nRisk Level: ${riskLevel}\n\nWeather Risk: ${
+                    }/100\nRisk Level: ${riskLevel}\nWeather Risk: ${
                       rainfallRisk ?? "--"
-                    }\n\nCrop Risk: ${
+                    }\nCrop Risk: ${
                       cropRisk ?? "--"
-                    }\n\nNDVI: ${
+                    }\nNDVI: ${
                       ndvi !== null
                         ? Number(
                             ndvi
@@ -1018,11 +997,11 @@ function App() {
                             4
                           )
                         : "--"
-                    }\n\nPayout Eligible: ${
+                    }\nPayout Eligible: ${
                       payoutEligible
                         ? "Yes"
                         : "No"
-                    }\n\nReason: ${payoutReason}`
+                    }\nReason: ${payoutReason}`
                   );
 
                 }}
@@ -1042,13 +1021,11 @@ function App() {
 
           </section>
 
-          {/* POLICY */}
-
           {policy && (
             <section className="activity">
 
               <h2>
-                📋 Insurance Policy #1
+                📋 Insurance Policy #{ACTIVE_POLICY_ID}
               </h2>
 
               <p>
@@ -1185,8 +1162,6 @@ function App() {
             </section>
           )}
 
-          {/* RECENT ACTIVITY */}
-
           <section className="activity">
 
             <h2>
@@ -1206,7 +1181,9 @@ function App() {
                 </strong>
 
                 <p>
-                  Policy information
+                  Policy #
+                  {ACTIVE_POLICY_ID}
+                  {" "}
                   retrieved from
                   Ethereum Sepolia.
                 </p>
@@ -1272,9 +1249,11 @@ function App() {
                   </strong>
 
                   <p>
-                    Blockchain policy
-                    confirms the payout
-                    has been triggered.
+                    Policy #
+                    {ACTIVE_POLICY_ID}
+                    {" "}
+                    payout is confirmed
+                    on the blockchain.
                   </p>
 
                 </div>
